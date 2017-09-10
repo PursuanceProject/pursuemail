@@ -1,3 +1,4 @@
 CREATE DATABASE pursuemail OWNER pursuemail ENCODING 'UTF8';
 GRANT ALL ON DATABASE pursuemail TO pursuemail;
-ALTER USER pursuemail CREATEDB;
+ALTER USER pursuemail WITH CREATEDB;
+ALTER USER pursuemail WITH SUPERUSER;

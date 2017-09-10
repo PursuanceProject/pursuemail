@@ -127,7 +127,7 @@ func SendEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Response
 			return
 		}
 
-		if sendEmailReq.SecureOnly && !emailAccount.HasPubKey {
+		if sendEmailReq.SecureOnly && !emailAccount.HasPubKey() {
 			log.Warnf("Failed SecureOnly Email to %s - no pub key", emailAccount.Id)
 			ErrorRespond(w, err.Error(), http.StatusBadRequest)
 			return
@@ -179,7 +179,7 @@ func SendBulkEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Resp
 
 		failedIds := []string{}
 		for _, email := range emailAccounts {
-			if sendBulkEmailReq.SecureOnly && !email.HasPubKey {
+			if sendBulkEmailReq.SecureOnly && !email.HasPubKey() {
 				failedIds = append(failedIds, email.Id)
 				continue
 			}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -9,44 +10,31 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	emailLib "github.com/jordan-wright/email"
+	"github.com/thecloakproject/utils/crypt"
 )
 
 type EmailAccount struct {
-	Id        string    `json:"id,omitempty"`
-	Email     string    `json:"email"`
-	PubKey    string    `json:"pubkey,omitempty"`
-	HasPubKey bool      `json:"has_pubkey,omitempty"`
-	Created   time.Time `json:"created,omitempty"`
+	Id      string    `json:"id,omitempty"`
+	Email   string    `json:"email"`
+	PubKey  string    `json:"pubkey,omitempty"`
+	Created time.Time `json:"created,omitempty"`
 }
 
 func GetEmailAccount(db *sql.DB, id string) (*EmailAccount, error) {
-	emailAccount := &EmailAccount{}
-	err := db.QueryRow(`
-		SELECT
-			id, email, has_pubkey, created
-		FROM
-			email_account
-		WHERE
-		id = $1
-	`, id).Scan(
-		&emailAccount.Id, &emailAccount.Email,
-		&emailAccount.HasPubKey, &emailAccount.Created,
-	)
-
+	accounts, err := GetEmailAccounts(db, []string{id})
 	if err != nil {
-		if err != sql.ErrNoRows {
-			log.Errorf("Error getting email_account. Err: %s", err)
-		}
 		return nil, err
 	}
-
-	return emailAccount, nil
+	if len(accounts) != 1 {
+		return nil, fmt.Errorf("%d accounts with id %v, not 1!", len(accounts), id)
+	}
+	return accounts[0], nil
 }
 
 func GetEmailAccounts(db *sql.DB, ids []string) ([]*EmailAccount, error) {
 	rows, err := db.Query(`
 		SELECT
-			id, email, has_pubkey, created
+			id, email, created
 		FROM
 			email_account
 		WHERE
@@ -65,7 +53,7 @@ func GetEmailAccounts(db *sql.DB, ids []string) ([]*EmailAccount, error) {
 	for rows.Next() {
 		var ea EmailAccount
 
-		err := rows.Scan(&ea.Id, &ea.Email, &ea.HasPubKey, &ea.Created)
+		err := rows.Scan(&ea.Id, &ea.Email, &ea.Created)
 
 		if err != nil {
 			log.Errorf("Error with scan. Err: %v", err)
@@ -92,15 +80,13 @@ func (e *EmailAccount) Save(db *sql.DB) error {
 			log.Errorf("Error importing public key. Err: %s", err)
 			return err
 		}
-		e.HasPubKey = true
 	}
 
 	err = tx.QueryRow(`
-		INSERT INTO email_account(email, has_pubkey)
-		VALUES ($1, $2)
+		INSERT INTO email_account(email)
+		VALUES ($1)
 		RETURNING id, created
-	`, e.Email, e.HasPubKey,
-	).Scan(&e.Id, &e.Created)
+	`, e.Email).Scan(&e.Id, &e.Created)
 
 	if err != nil {
 		log.Errorf("Error adding email_account. Err: %s", err)
@@ -122,7 +108,7 @@ func (e *EmailAccount) Save(db *sql.DB) error {
 func (e *EmailAccount) Send(emailData EmailData, emailPool *emailLib.Pool) error {
 	sendableEmail := emailData.toSendableEmail()
 
-	if e.HasPubKey {
+	if e.HasPubKey() {
 		encryptedMsg, err := encryptEmailBody(sendableEmail.From, e.Email, string(sendableEmail.Text))
 		if err != nil {
 			log.Errorf("Error encrypting message: %v\n", err)
@@ -135,6 +121,15 @@ func (e *EmailAccount) Send(emailData EmailData, emailPool *emailLib.Pool) error
 
 	// TODO - Make timeout configurable?
 	return emailPool.Send(sendableEmail, 15*time.Second)
+}
+
+func (e *EmailAccount) HasPubKey() bool {
+	_, err := crypt.GetEntityFrom(e.Email, crypt.PUBLIC_KEYRING_FILENAME)
+	if err != nil {
+		log.Debugf("Entity not found for %s. Err: %s", e.Email, err)
+		return false
+	}
+	return true
 }
 
 type EmailData struct {
