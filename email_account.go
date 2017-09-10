@@ -19,7 +19,7 @@ type EmailAccount struct {
 	Created   time.Time `json:"created,omitempty"`
 }
 
-func GetEmailAccount(id string, db *sql.DB) (*EmailAccount, error) {
+func GetEmailAccount(db *sql.DB, id string) (*EmailAccount, error) {
 	emailAccount := &EmailAccount{}
 	err := db.QueryRow(`
 		SELECT
@@ -43,7 +43,7 @@ func GetEmailAccount(id string, db *sql.DB) (*EmailAccount, error) {
 	return emailAccount, nil
 }
 
-func GetEmailAccounts(ids []string, db *sql.DB) ([]*EmailAccount, error) {
+func GetEmailAccounts(db *sql.DB, ids []string) ([]*EmailAccount, error) {
 	rows, err := db.Query(`
 		SELECT
 			id, email, has_pubkey, created

@@ -81,7 +81,7 @@ func CreateEmailAccountHandler(db *sql.DB) func(w http.ResponseWriter, req *http
 
 		err = newAccount.Save(db)
 		if err != nil {
-			ErrorRespond(w, err.Error(), http.StatusBadRequest)
+			ErrorRespond(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -121,7 +121,7 @@ func SendEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Response
 		}
 
 		// TODO - support returning 500 as well
-		emailAccount, err := GetEmailAccount(id, db)
+		emailAccount, err := GetEmailAccount(db, id)
 		if err != nil {
 			ErrorRespond(w, err.Error(), http.StatusNotFound)
 			return
@@ -151,7 +151,7 @@ type SendBulkEmailRequest struct {
 }
 
 type SendBulkEmailResponse struct {
-	FailedEmails []string `json:"failed_emails"`
+	FailedIds []string `json:"failed_emails"`
 }
 
 func SendBulkEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.ResponseWriter, req *http.Request) {
@@ -171,33 +171,33 @@ func SendBulkEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Resp
 
 		// TODO - If SecureOnly is true, should filter out in db query
 		// TODO - support returning 500 as well
-		emailAccounts, err := GetEmailAccounts(sendBulkEmailReq.Ids, db)
+		emailAccounts, err := GetEmailAccounts(db, sendBulkEmailReq.Ids)
 		if err != nil {
 			ErrorRespond(w, err.Error(), http.StatusNotFound)
 			return
 		}
 
-		failedEmails := []string{}
+		failedIds := []string{}
 		for _, email := range emailAccounts {
 			if sendBulkEmailReq.SecureOnly && !email.HasPubKey {
-				failedEmails = append(failedEmails, email.Id)
+				failedIds = append(failedIds, email.Id)
 				continue
 			}
 
 			err = email.Send(sendBulkEmailReq.EmailData, emailPool)
 			if err != nil {
 				log.Errorf("Error sending email: %v", err)
-				failedEmails = append(failedEmails, email.Id)
+				failedIds = append(failedIds, email.Id)
 				continue
 			}
 		}
 
-		if len(failedEmails) == 0 {
+		if len(failedIds) == 0 {
 			w.WriteHeader(http.StatusNoContent)
 		} else {
 			w.Header().Set(contentType, jsonContentType)
 			w.WriteHeader(http.StatusCreated)
-			resp := &SendBulkEmailResponse{FailedEmails: failedEmails}
+			resp := &SendBulkEmailResponse{FailedIds: failedIds}
 			if err := json.NewEncoder(w).Encode(resp); err != nil {
 				log.Errorf("Error occured when marshalling response: %s", err)
 				return
