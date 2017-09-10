@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -32,14 +33,15 @@ func GetEmailAccount(db *sql.DB, id string) (*EmailAccount, error) {
 }
 
 func GetEmailAccounts(db *sql.DB, ids []string) ([]*EmailAccount, error) {
+	idsParam := "{" + strings.Join(ids, ",") + "}"
 	rows, err := db.Query(`
 		SELECT
 			id, email, created
 		FROM
 			email_account
 		WHERE
-			id in ($1)
-	`, ids)
+			id = ANY($1::uuid[])
+	`, idsParam)
 
 	if err != nil {
 		if err != sql.ErrNoRows {
