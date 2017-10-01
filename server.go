@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -147,9 +148,17 @@ func SendEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Response
 }
 
 type SendBulkEmailRequest struct {
-	Ids        []string  `json:"ids"`
+	Ids        []string  `json:"ids,omitempty"`
+	Emails     []string  `json:"emails,omitempty"`
 	EmailData  EmailData `json:"email_data"`
 	SecureOnly bool      `json:"secure_only,omitempty"`
+}
+
+func (bulkReq *SendBulkEmailRequest) Validate() error {
+	if len(bulkReq.Ids) != 0 && len(bulkReq.Emails) != 0 {
+		return errors.New("Request body includes both emails and ids, parameters that are mutually exclusive")
+	}
+	return nil
 }
 
 type SendBulkEmailResponse struct {
@@ -171,12 +180,25 @@ func SendBulkEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Resp
 			return
 		}
 
-		// TODO - If SecureOnly is true, should filter out in db query
-		// TODO - support returning 500 as well
-		emailAccounts, err := GetEmailAccounts(db, sendBulkEmailReq.Ids)
+		err = sendBulkEmailReq.Validate()
 		if err != nil {
-			ErrorRespond(w, err.Error(), http.StatusNotFound)
+			ErrorRespond(w, err.Error(), http.StatusBadRequest)
 			return
+		}
+
+		emailAccounts := []*EmailAccount{}
+		if len(sendBulkEmailReq.Ids) > 0 {
+			// TODO - If SecureOnly is true, should filter out in db query
+			// TODO - support returning 500 as well
+			emailAccounts, err = GetEmailAccounts(db, sendBulkEmailReq.Ids)
+			if err != nil {
+				ErrorRespond(w, err.Error(), http.StatusNotFound)
+				return
+			}
+		} else if len(sendBulkEmailReq.Emails) > 0 {
+			for _, email := range sendBulkEmailReq.Emails {
+				emailAccounts = append(emailAccounts, &EmailAccount{Email: email})
+			}
 		}
 
 		failedIds := SendBulkEmail(emailAccounts, sendBulkEmailReq, emailPool)
