@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sync"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
@@ -180,18 +181,29 @@ func SendBulkEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Resp
 		}
 
 		failedIds := []string{}
+		failedIdsChan := make(chan string)
+		wg := new(sync.WaitGroup)
 		for _, email := range emailAccounts {
 			if sendBulkEmailReq.SecureOnly && !email.HasPubKey() {
 				failedIds = append(failedIds, email.Id)
 				continue
 			}
 
-			err = email.Send(sendBulkEmailReq.EmailData, emailPool)
-			if err != nil {
-				log.Errorf("Error sending email: %v", err)
-				failedIds = append(failedIds, email.Id)
-				continue
-			}
+			wg.Add(1)
+			go func(email *EmailAccount) {
+				defer wg.Done()
+				err = email.Send(sendBulkEmailReq.EmailData, emailPool)
+				if err != nil {
+					log.Errorf("Error sending email: %v", err)
+					failedIdsChan <- email.Id
+				}
+			}(email)
+		}
+
+		wg.Wait()
+		close(failedIdsChan)
+		for failedId := range failedIdsChan {
+			failedIds = append(failedIds, failedId)
 		}
 
 		if len(failedIds) == 0 {
