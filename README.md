@@ -2,7 +2,9 @@
 
 ### Dev
 
-Use https://mailcatcher.me/ for SMTP testing
+Used https://mailcatcher.me/ for SMTP testing
+
+Important note: There are a bunch of hardcoded values at the moment.
 
 ### TODOs
 
