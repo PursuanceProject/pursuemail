@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -128,8 +129,9 @@ func SendEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Response
 		}
 
 		if sendEmailReq.SecureOnly && !emailAccount.HasPubKey() {
-			log.Warnf("Failed SecureOnly Email to %s - no pub key", emailAccount.Id)
-			ErrorRespond(w, err.Error(), http.StatusBadRequest)
+			errStr := fmt.Sprintf("Failed SecureOnly Email to %s - no pub key", emailAccount.Id)
+			log.Warn(errStr)
+			ErrorRespond(w, errStr, http.StatusBadRequest)
 			return
 		}
 
