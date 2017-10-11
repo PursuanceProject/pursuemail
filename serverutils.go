@@ -7,8 +7,7 @@ import (
 	emailLib "github.com/jordan-wright/email"
 )
 
-func SendBulkEmail(emailAccounts []*EmailAccount, sendBulkEmailReq *SendBulkEmailRequest, emailPool *emailLib.Pool) []string {
-	failedIds := []string{}
+func SendBulkEmail(emailAccounts []*EmailAccount, sendBulkEmailReq *SendBulkEmailRequest, emailPool *emailLib.Pool) (failedIds []string) {
 	failedIdsChan := make(chan string)
 	wg := new(sync.WaitGroup)
 	for _, email := range emailAccounts {

@@ -40,8 +40,8 @@ func readReqBody(r *http.Request) ([]byte, error) {
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
-		log.Errorf("Error occured when reading r.Body: %s", err)
-		return []byte{}, err
+		log.Errorf("Error occurred when reading r.Body: %s", err)
+		return nil, err
 	}
 	return body, nil
 }
