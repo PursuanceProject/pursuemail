@@ -58,7 +58,7 @@ func ErrorRespond(w http.ResponseWriter, errMsg string, code int) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(code)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		log.Errorf("Error occured when marshalling response: %s", err)
+		log.Errorf("Error occurred when marshalling response: %s", err)
 	}
 }
 
@@ -76,7 +76,7 @@ func CreateEmailAccountHandler(db *sql.DB) func(w http.ResponseWriter, req *http
 		}
 
 		if err := json.Unmarshal(body, newAccount); err != nil {
-			log.Errorf("Error occured when unmarshalling data: %s", err)
+			log.Errorf("Error occurred when unmarshalling data: %s", err)
 			ErrorRespond(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -94,7 +94,7 @@ func CreateEmailAccountHandler(db *sql.DB) func(w http.ResponseWriter, req *http
 		w.Header().Set(contentType, jsonContentType)
 		w.WriteHeader(http.StatusCreated)
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
-			log.Errorf("Error occured when marshalling response: %s", err)
+			log.Errorf("Error occurred when marshalling response: %s", err)
 			return
 		}
 	}
@@ -117,7 +117,7 @@ func SendEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Response
 		}
 
 		if err := json.Unmarshal(body, sendEmailReq); err != nil {
-			log.Errorf("Error occured when unmarshalling data: %s", err)
+			log.Errorf("Error occurred when unmarshalling data: %s", err)
 			ErrorRespond(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -175,7 +175,7 @@ func SendBulkEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Resp
 		}
 
 		if err := json.Unmarshal(body, sendBulkEmailReq); err != nil {
-			log.Errorf("Error occured when unmarshalling data: %s", err)
+			log.Errorf("Error occurred when unmarshalling data: %s", err)
 			ErrorRespond(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -210,7 +210,7 @@ func SendBulkEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Resp
 			w.WriteHeader(http.StatusCreated)
 			resp := &SendBulkEmailResponse{FailedIds: failedIds}
 			if err := json.NewEncoder(w).Encode(resp); err != nil {
-				log.Errorf("Error occured when marshalling response: %s", err)
+				log.Errorf("Error occurred when marshalling response: %s", err)
 				return
 			}
 		}
