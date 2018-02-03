@@ -25,7 +25,10 @@ func main() {
 	defer db.Close()
 
 	// TODO - Setup configuration for Mailgun or similar
-	emailPool := emailLib.NewPool("localhost:1025", 5, nil)
+	emailPool, err := emailLib.NewPool("localhost:1025", 5, nil)
+	if err != nil {
+		log.Fatalf("Error from email.NewPool: %v", err)
+	}
 	defer emailPool.Close()
 
 	srv := NewServer(addr, db, emailPool)
