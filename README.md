@@ -17,4 +17,6 @@ Important note: There are a bunch of hardcoded values at the moment.
 
 ### Potential Problem Areas
 
-* Currently the sending endpoints hold onto the connection until all emails are sent. May want to move this to a background worker with callback support.
+* Currently the sending endpoints hold onto the connection until all
+emails are sent.  May want to move this to a background worker with
+callback support.

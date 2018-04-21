@@ -112,7 +112,8 @@ func (e *EmailAccount) Send(emailData EmailData, emailPool *emailLib.Pool) error
 	sendableEmail := emailData.toSendableEmail()
 
 	if e.HasPubKey() {
-		encryptedMsg, err := encryptEmailBody(sendableEmail.From, e.Email, string(sendableEmail.Text))
+		encryptedMsg, err := encryptEmailBody(sendableEmail.From, e.Email,
+			string(sendableEmail.Text))
 		if err != nil {
 			log.Errorf("Error encrypting message: %v\n", err)
 			return err

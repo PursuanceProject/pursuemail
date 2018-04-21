@@ -17,7 +17,7 @@ import (
 
 const (
 	contentType     = "Content-Type"
-	jsonContentType = "application/json;charset=UTF-8"
+	jsonContentType = "application/json; charset=UTF-8"
 )
 
 func NewServer(httpAddr string, db *sql.DB, emailPool *emailLib.Pool) *http.Server {
