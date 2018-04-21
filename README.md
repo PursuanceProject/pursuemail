@@ -7,6 +7,35 @@ Used https://mailcatcher.me/ for SMTP testing
 Important note: There are a bunch of hardcoded values at the moment.
 
 
+## Server Setup
+
+Download and configure with:
+
+```
+go get github.com/PursuanceProject/pursuemail
+cd $(go env GOPATH)/src/github.com/PursuanceProject/pursuemail
+cp .env-sample .env
+# !!! Customize .env !!!
+```
+
+Postgres setup:
+
+```
+go get github.com/PursuanceProject/pursuemail
+cd db
+sudo -u postgres bash init_sql.sh
+cd ..
+```
+
+Build:
+
+```
+go build
+source .env  # Sets 'PGPASSWORD' environment variable so pursuemail can use it
+./pursuemail
+```
+
+
 ## Example API Calls
 
 ### Map Email Address to (Random) UUID
