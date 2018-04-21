@@ -9,6 +9,7 @@ fi
 source ../.env
 psql -d postgres -c "CREATE USER pursuemail WITH PASSWORD '$PGPASSWORD';" || true
 psql -d postgres -f sql/pre.sql
+export PGHOST=localhost
 export PGUSER=pursuemail
 export PGDATABASE=pursuemail
 
@@ -21,4 +22,4 @@ for file in sql/table*.sql; do
     psql -f "$file"
 done
 
-/bin/bash migrate.sh
+/bin/bash migrate.sh sql/migration*.sql

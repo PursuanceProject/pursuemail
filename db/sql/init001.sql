@@ -1,6 +1,6 @@
 create extension if not exists "uuid-ossp";
 CREATE TABLE email_account (
-  id          uuid      NOT NULL UNIQUE PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          uuid      NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
   email       text      NOT NULL,
   created     timestamp WITH time zone DEFAULT now()
 );

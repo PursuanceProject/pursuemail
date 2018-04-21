@@ -1,5 +1,6 @@
 set -euo pipefail
 
+export PGHOST=localhost
 export PGUSER=postgres
 export PGDATABASE=pursuemail
 if [ "`uname -s`" != "Linux" ]; then
@@ -8,6 +9,6 @@ if [ "`uname -s`" != "Linux" ]; then
 fi
 
 # Run migrations
-for file in sql/migration*.sql; do
+for file in $*; do
     psql -f "$file"
 done
