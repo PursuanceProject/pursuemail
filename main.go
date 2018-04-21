@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"net/smtp"
 	"os"
 	"strings"
 
@@ -26,7 +27,9 @@ func main() {
 	defer db.Close()
 
 	// TODO - Setup configuration for Mailgun or similar
-	emailPool, err := emailLib.NewPool("localhost:1025", 5, nil)
+	emailPool, err := emailLib.NewPool(os.Getenv("SMTP_SERVER"), 5,
+		smtp.PlainAuth("", os.Getenv("SMTP_LOGIN"),
+			os.Getenv("SMTP_PASSWORD"), strings.SplitN(os.Getenv("SMTP_SERVER"), ":", 2)[0]))
 	if err != nil {
 		log.Fatalf("Error from email.NewPool: %v", err)
 	}

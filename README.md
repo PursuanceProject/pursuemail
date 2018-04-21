@@ -2,9 +2,7 @@
 
 ## Dev
 
-Used https://mailcatcher.me/ for SMTP testing
-
-Important note: There are a bunch of hardcoded values at the moment.
+Use https://mailcatcher.me/ for local SMTP testing.
 
 
 ## Server Setup
@@ -41,7 +39,7 @@ source .env  # Sets 'PGPASSWORD' environment variable so pursuemail can use it
 ### Map Email Address to (Random) UUID
 
 ```
-curl -i localhost:9080/api/v1/email -d {"email": "spam@pursuanceproject.org"}
+curl -i localhost:9080/api/v1/email -d '{"email": "spam@pursuanceproject.org"}'
 ```
 
 
