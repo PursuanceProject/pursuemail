@@ -105,6 +105,19 @@ type SendEmailRequest struct {
 	SecureOnly bool      `json:"secure_only,omitempty"`
 }
 
+func (ser *SendEmailRequest) Validate() error {
+	if ser == nil {
+		return fmt.Errorf("Got nil *SendEmailRequest!")
+	}
+	if ser.EmailData.Body == "" {
+		return fmt.Errorf("Email cannot have an empty body!")
+	}
+	if ser.EmailData.From == "" {
+		return fmt.Errorf("Email cannot have an empty 'from' address!")
+	}
+	return nil
+}
+
 func SendEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
@@ -118,6 +131,12 @@ func SendEmailHandler(db *sql.DB, emailPool *emailLib.Pool) func(w http.Response
 
 		if err := json.Unmarshal(body, sendEmailReq); err != nil {
 			log.Errorf("Error occurred when unmarshalling data: %s", err)
+			ErrorRespond(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err = sendEmailReq.Validate(); err != nil {
+			log.Errorf("Invalid SendEmailRequest: %s", err)
 			ErrorRespond(w, err.Error(), http.StatusBadRequest)
 			return
 		}

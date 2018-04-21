@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"os"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -15,7 +16,7 @@ func init() {
 
 func main() {
 	// TODO - Handle basic signals
-	addr := "127.0.0.1:8080"
+	addr := "127.0.0.1:9080"
 
 	pgUser := "pursuemail"
 	pgHost := "127.0.0.1:5432"
@@ -37,11 +38,15 @@ func main() {
 }
 
 func BuildPGUrl(pgUser, pgHost, databaseName string) string {
-	return strings.Join([]string{"postgres://", pgUser, "@", pgHost, "/", databaseName, "?sslmode=disable"}, "")
+	password := os.Getenv("PGPASSWORD")
+	dbUrl := "postgres://" + pgUser + ":" + password + "@" +
+		pgHost + "/" + databaseName + "?sslmode=disable"
+	log.Debugf("Building new Postgres URL `%s`",
+		strings.Replace(dbUrl, password, "${PGPASSWORD}", -1))
+	return dbUrl
 }
 
 func MustGetDb(dbUrl string) *sql.DB {
-	log.Debugf("Creating new db postgres instance @ `%s`", dbUrl)
 	db, err := sql.Open("postgres", dbUrl)
 	if err != nil {
 		log.Fatalf("Could not open postgres db @ `%s`", dbUrl)

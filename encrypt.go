@@ -84,7 +84,7 @@ func GetEntityFrom(email, sourceFile string) (*openpgp.Entity, error) {
 	}
 
 	if key == nil {
-		e := fmt.Errorf("Couldn't find key for user %s: %v", email, err)
+		e := fmt.Errorf("Couldn't find key for user with email %s: %v", email, err)
 		return nil, e
 	}
 

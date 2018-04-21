@@ -65,6 +65,7 @@ func GetEmailAccounts(db *sql.DB, ids []string) ([]*EmailAccount, error) {
 		emailAccounts = append(emailAccounts, &ea)
 	}
 
+	log.Debugf("GetEmailAccounts returning %v accounts", len(emailAccounts))
 	return emailAccounts, nil
 }
 
