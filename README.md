@@ -25,7 +25,7 @@ sudo -u postgres bash init_sql.sh
 cd ..
 ```
 
-Build:
+Build and run:
 
 ```
 go build
