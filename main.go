@@ -27,7 +27,7 @@ func main() {
 	defer db.Close()
 
 	// TODO - Setup configuration for Mailgun or similar
-	emailPool, err := emailLib.NewPool(os.Getenv("SMTP_SERVER"), 5,
+	emailPool, err := emailLib.NewPool(os.Getenv("SMTP_SERVER"), 1,
 		smtp.PlainAuth("", os.Getenv("SMTP_LOGIN"),
 			os.Getenv("SMTP_PASSWORD"), strings.SplitN(os.Getenv("SMTP_SERVER"), ":", 2)[0]))
 	if err != nil {
